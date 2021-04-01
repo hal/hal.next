@@ -27,12 +27,14 @@ interface AddressTemplates {
     String MANAGED_EXECUTOR_ADDRESS = EE_ADDRESS + "/managed-executor-service=*";
     String MANAGED_EXECUTOR_SCHEDULED_ADDRESS = EE_ADDRESS + "/managed-scheduled-executor-service=*";
     String MANAGED_THREAD_FACTORY_ADDRESS = EE_ADDRESS + "/managed-thread-factory=*";
+    String GLOBAL_DIRECTORY_ADDRESS = EE_ADDRESS + "/global-directory=*";
 
     AddressTemplate SERVICE_DEFAULT_BINDINGS_TEMPLATE = AddressTemplate.of(SERVICE_DEFAULT_BINDINGS_ADDRESS);
     AddressTemplate CONTEXT_SERVICE_TEMPLATE = AddressTemplate.of(CONTEXT_SERVICE_ADDRESS);
     AddressTemplate MANAGED_EXECUTOR_TEMPLATE = AddressTemplate.of(MANAGED_EXECUTOR_ADDRESS);
     AddressTemplate MANAGED_EXECUTOR_SCHEDULED_TEMPLATE = AddressTemplate.of(MANAGED_EXECUTOR_SCHEDULED_ADDRESS);
     AddressTemplate MANAGED_THREAD_FACTORY_TEMPLATE = AddressTemplate.of(MANAGED_THREAD_FACTORY_ADDRESS);
+    AddressTemplate GLOBAL_DIRECTORY_TEMPLATE = AddressTemplate.of(GLOBAL_DIRECTORY_ADDRESS);
 
     AddressTemplate EE_SUBSYSTEM_TEMPLATE = AddressTemplate.of(SELECTED_PROFILE, "subsystem=ee");
 }

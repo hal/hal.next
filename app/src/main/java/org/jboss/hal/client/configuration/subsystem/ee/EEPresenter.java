@@ -28,10 +28,12 @@ import org.jboss.hal.ballroom.dialog.DialogFactory;
 import org.jboss.hal.ballroom.form.Form;
 import org.jboss.hal.ballroom.form.Form.FinishReset;
 import org.jboss.hal.core.CrudOperations;
+import org.jboss.hal.core.configuration.PathsAutoComplete;
 import org.jboss.hal.core.finder.Finder;
 import org.jboss.hal.core.finder.FinderPath;
 import org.jboss.hal.core.finder.FinderPathFactory;
 import org.jboss.hal.core.mbui.dialog.AddResourceDialog;
+import org.jboss.hal.core.mbui.dialog.NameItem;
 import org.jboss.hal.core.mbui.form.ModelNodeForm;
 import org.jboss.hal.core.mvp.ApplicationFinderPresenter;
 import org.jboss.hal.core.mvp.HalView;
@@ -55,6 +57,7 @@ import org.jboss.hal.spi.MessageEvent;
 import org.jboss.hal.spi.Requires;
 
 import static org.jboss.hal.client.configuration.subsystem.ee.AddressTemplates.EE_SUBSYSTEM_TEMPLATE;
+import static org.jboss.hal.client.configuration.subsystem.ee.AddressTemplates.GLOBAL_DIRECTORY_TEMPLATE;
 import static org.jboss.hal.dmr.ModelDescriptionConstants.*;
 
 public class EEPresenter
@@ -73,6 +76,7 @@ public class EEPresenter
     private final StatementContext statementContext;
     private final EventBus eventBus;
     private final Metadata globalModulesMetadata;
+    private final Metadata globalDirectoryMetadata;
 
     @Inject
     public EEPresenter(EventBus eventBus,
@@ -93,6 +97,7 @@ public class EEPresenter
         this.statementContext = statementContext;
         this.eventBus = eventBus;
         this.globalModulesMetadata = globalModulesMetadata(metadataRegistry);
+        this.globalDirectoryMetadata = metadataRegistry.lookup(GLOBAL_DIRECTORY_TEMPLATE);
     }
 
     @Override
@@ -184,6 +189,40 @@ public class EEPresenter
                 });
     }
 
+    void removeGlobalDirectory(AddressTemplate template) {
+        Operation operation = new Operation.Builder(template.resolve(statementContext), REMOVE).build();
+        dispatcher.execute(operation, result -> {
+            MessageEvent.fire(eventBus, Message.success(
+                    resources.messages().removeResourceSuccess(Names.EE, Names.GLOBAL_DIRECTORY)));
+            reload();
+        });
+    }
+
+    void launchAddDialogGlobalDirectory() {
+        Form<ModelNode> form = new ModelNodeForm.Builder<>(Ids.build(Ids.EE, GLOBAL_DIRECTORY, ADD), globalDirectoryMetadata)
+                .addOnly()
+                .unboundFormItem(new NameItem(), 0)
+                .include(PATH, RELATIVE_TO)
+                .unsorted()
+                .build();
+
+        form.getFormItem(RELATIVE_TO).registerSuggestHandler(new PathsAutoComplete());
+
+        AddResourceDialog dialog = new AddResourceDialog(resources.messages().addResourceTitle(Names.GLOBAL_DIRECTORY),
+                form, (name, globalDirectory) -> {
+            ResourceAddress address = GLOBAL_DIRECTORY_TEMPLATE.resolve(statementContext, name);
+            Operation operation = new Operation.Builder(address, ADD)
+                    .payload(globalDirectory)
+                    .build();
+            dispatcher.execute(operation, result -> {
+                MessageEvent.fire(eventBus, Message.success(
+                        resources.messages().addResourceSuccess(Names.GLOBAL_DIRECTORY, name)));
+                reload();
+            });
+        });
+
+        dialog.show();
+    }
 
     // @formatter:off
     @ProxyCodeSplit

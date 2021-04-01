@@ -22,9 +22,13 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import elemental2.dom.HTMLElement;
+import org.jboss.hal.ballroom.EmptyState;
 import org.jboss.hal.ballroom.VerticalNavigation;
 import org.jboss.hal.ballroom.form.Form;
+import org.jboss.hal.ballroom.form.FormItem;
 import org.jboss.hal.ballroom.table.Table;
+import org.jboss.hal.core.configuration.PathsAutoComplete;
+import org.jboss.hal.core.mbui.dialog.NameItem;
 import org.jboss.hal.core.mbui.form.ModelNodeForm;
 import org.jboss.hal.core.mbui.table.ModelNodeTable;
 import org.jboss.hal.core.mbui.table.TableButtonFactory;
@@ -32,9 +36,12 @@ import org.jboss.hal.core.mvp.HalViewImpl;
 import org.jboss.hal.dmr.ModelDescriptionConstants;
 import org.jboss.hal.dmr.ModelNode;
 import org.jboss.hal.dmr.NamedNode;
+import org.jboss.hal.dmr.Operation;
+import org.jboss.hal.dmr.Property;
 import org.jboss.hal.meta.AddressTemplate;
 import org.jboss.hal.meta.Metadata;
 import org.jboss.hal.meta.MetadataRegistry;
+import org.jboss.hal.meta.security.Constraint;
 import org.jboss.hal.resources.Ids;
 import org.jboss.hal.resources.Names;
 import org.jboss.hal.resources.Resources;
@@ -108,6 +115,7 @@ public class EEView extends HalViewImpl implements EEPresenter.MyView {
         // ============================================
         // global modules
         Metadata globalModulesMetadata = eeMetadata.forComplexAttribute(GLOBAL_MODULES);
+        Metadata globalDirectoryMetadata = metadataRegistry.lookup(GLOBAL_DIRECTORY_TEMPLATE);
 
         globalModulesTable = new ModelNodeTable.Builder<>(Ids.EE_GLOBAL_MODULES_TABLE, globalModulesMetadata)
                 .columns(NAME, "slot", "annotations", "services", "meta-inf")
@@ -118,11 +126,20 @@ public class EEView extends HalViewImpl implements EEPresenter.MyView {
                 .build();
         registerAttachable(globalModulesTable);
 
+        // global directory
+        ModelNodeForm<NamedNode> globalDirectoryForm = globalDirectoryForm(Ids.EE, globalDirectoryMetadata);
+
+        forms.put(GLOBAL_DIRECTORY, globalDirectoryForm);
+        registerAttachable(globalDirectoryForm);
+
         navigationElement = div()
                 .add(h(1).textContent(Names.GLOBAL_MODULES))
                 .add(p().textContent(globalModulesMetadata.getDescription().getDescription()))
-                .add(globalModulesTable).element();
-        navigation.addPrimary(EE_GLOBAL_MODULES_ITEM, Names.GLOBAL_MODULES, fontAwesome("cubes"), navigationElement);
+                .add(globalModulesTable)
+                .add(h(1).textContent(Names.GLOBAL_DIRECTORY))
+                .add(p().textContent(globalDirectoryMetadata.getDescription().getDescription()))
+                .add(globalDirectoryForm).element();
+        navigation.addPrimary(EE_GLOBAL_MODULES_ITEM, "Globals", fontAwesome("cubes"), navigationElement);
 
         // ============================================
         // service=default-bindings
@@ -216,6 +233,15 @@ public class EEView extends HalViewImpl implements EEPresenter.MyView {
         // update the managed-thread-factory table
         update(eeData, MANAGED_THREAD_FACTORY, EE_MANAGED_THREAD_FACTORY);
 
+        // update global-directory
+        ModelNode modelNode = eeData.get(GLOBAL_DIRECTORY);
+        Form<ModelNode> form = forms.get(GLOBAL_DIRECTORY);
+        if (modelNode.isDefined()) {
+            Property globalDirectory = modelNode.asProperty();
+            form.getFormItem(NAME).setValue(globalDirectory.getName());
+            modelNode = globalDirectory.getValue();
+        }
+        form.view(modelNode);
     }
 
     @SuppressWarnings("unchecked")
@@ -270,5 +296,66 @@ public class EEView extends HalViewImpl implements EEPresenter.MyView {
                 .add(p().textContent(metadata.getDescription().getDescription()))
                 .add(table)
                 .add(form).element();
+    }
+
+    public ModelNodeForm<NamedNode> globalDirectoryForm(String baseId, Metadata metadata) {
+
+        // global-directory is effectively a singleton with a custom name
+        String name = GLOBAL_DIRECTORY;
+        AddressTemplate template = GLOBAL_DIRECTORY_TEMPLATE;
+
+        EmptyState.Builder emptyStateBuilder = new EmptyState.Builder(
+                Ids.build(baseId, name, Ids.FORM, Ids.EMPTY),
+                resources.constants().noResource());
+
+        if (metadata.getSecurityContext().isWritable()) {
+            emptyStateBuilder.primaryAction(resources.constants().add(), () -> {
+                        presenter.launchAddDialogGlobalDirectory();
+                    },
+                    Constraint.executable(metadata.getTemplate(), ModelDescriptionConstants.ADD))
+                    .description(resources.messages().noResource());
+        } else {
+            emptyStateBuilder.description(resources.constants().restricted());
+        }
+        EmptyState noGlobalDirectory = emptyStateBuilder.build();
+
+        // name is readonly but the value is required for CRUD
+        FormItem<String> nameItem = new NameItem();
+        nameItem.setEnabled(false);
+        ModelNodeForm.Builder<NamedNode> formBuilder = new ModelNodeForm.Builder<NamedNode>(
+                Ids.build(baseId, name, Ids.FORM), metadata)
+                .unboundFormItem(nameItem, 0)
+                .include(PATH, RELATIVE_TO)
+                .unsorted()
+                .singleton(
+                    () -> {
+                        Operation operation = null;
+                        if (metadata.getSecurityContext().isReadable()) {
+                            // read-* operations don't return undefined for a missing child
+                            operation = new Operation.Builder(presenter.resourceAddress(), QUERY)
+                                    .param(SELECT, new String[]{GLOBAL_DIRECTORY}).build();
+                        }
+                        return operation;
+                    },
+                    noGlobalDirectory)
+                .onSave((f, changedValues) -> {
+                    AddressTemplate fullyQualified = template.replaceWildcards(f.getFormItem(NAME).getValue().toString());
+                    presenter.save(fullyQualified, changedValues, metadata,
+                            resources.messages().modifyResourceSuccess(Names.EE, template.lastName()));
+                })
+                .prepareReset(f -> {
+                    AddressTemplate fullyQualified = template.replaceWildcards(f.getFormItem(NAME).getValue().toString());
+                    presenter.reset(Names.GLOBAL_DIRECTORY, name, fullyQualified, f, metadata,
+                            resources.messages().modifyResourceSuccess(Names.EE, template.lastName()));
+                })
+                .prepareRemove(f -> {
+                    AddressTemplate fullyQualified = template.replaceWildcards(f.getFormItem(NAME).getValue().toString());
+                    presenter.removeGlobalDirectory(fullyQualified);
+                });
+
+
+        ModelNodeForm<NamedNode> form = formBuilder.build();
+        form.getFormItem(RELATIVE_TO).registerSuggestHandler(new PathsAutoComplete());
+        return form;
     }
 }
