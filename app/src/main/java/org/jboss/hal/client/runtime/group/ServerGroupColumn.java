@@ -191,6 +191,13 @@ public class ServerGroupColumn extends FinderColumn<ServerGroup>
                             .constraints(constraints(item, START_SERVERS))
                             .build());
                 }
+                if (item.hasServers(server -> server.isStopped() || server.isFailed())) {
+                    actions.add(new ItemAction.Builder<ServerGroup>()
+                            .title(resources.constants().startInSuspendedMode())
+                            .handler(serverGroupActions::startInSuspendedMode)
+                            .constraints(constraints(item, SUSPEND_SERVERS))
+                            .build());
+                }
                 if (!item.hasServers(Server::isStarted)) {
                     actions.add(new ItemAction.Builder<ServerGroup>()
                             .title(resources.constants().remove())

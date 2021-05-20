@@ -311,6 +311,30 @@ public class ServerGroupActions {
         }
     }
 
+    public void startInSuspendedMode(ServerGroup serverGroup) {
+        List<Server> downServers = serverGroup.getServers(server -> server.isStopped() || server.isFailed());
+        if (!downServers.isEmpty()) {
+            prepare(serverGroup, downServers, Action.START);
+            Operation operation = new Operation.Builder(serverGroup.getAddress(), START_SERVERS)
+                    .param(START_MODE, SUSPEND)
+                    .param(BLOCKING, false)
+                    .build();
+            dispatcher.execute(operation,
+                    result -> repeatCompositeUntil(dispatcher, serverGroupTimeout(serverGroup, Action.START),
+                            readServerConfigStatus(downServers), checkServerConfigStatus(downServers.size(), STARTED))
+                            .subscribe(new ServerGroupTimeoutCallback(serverGroup, downServers,
+                                    resources.messages().startServerGroupInSuspendedModeSuccess(serverGroup.getName()))),
+                    new ServerGroupFailedCallback(serverGroup, downServers,
+                            resources.messages().startServerGroupError(serverGroup.getName())),
+                    new ServerGroupExceptionCallback(serverGroup, downServers,
+                            resources.messages().startServerGroupError(serverGroup.getName())));
+
+        } else {
+            MessageEvent.fire(eventBus,
+                    Message.warning(resources.messages().serverGroupNoStoppedServers(serverGroup.getName())));
+        }
+    }
+
     public void destroy(ServerGroup serverGroup) {
         List<Server> startedServers = serverGroup.getServers(Server::isStarted);
         DialogFactory.showConfirmation(resources.messages().destroy(serverGroup.getName()),
