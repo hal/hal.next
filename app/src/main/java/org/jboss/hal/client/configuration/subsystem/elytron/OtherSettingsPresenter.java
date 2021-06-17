@@ -148,6 +148,7 @@ public class OtherSettingsPresenter extends MbuiPresenter<OtherSettingsPresenter
                 ElytronResource.AGGREGATE_SECURITY_EVENT_LISTENER.resource,
                 ElytronResource.CUSTOM_SECURITY_EVENT_LISTENER.resource,
                 ElytronResource.PERMISSION_SET.resource,
+                ElytronResource.CERTIFICATE_AUTHORITY.resource,
                 ElytronResource.CERTIFICATE_AUTHORITY_ACCOUNT.resource,
                 ElytronResource.JASPI_CONFIGURATION.resource,
                 ElytronResource.SERVER_SSL_SNI_CONTEXT.resource,
@@ -194,6 +195,8 @@ public class OtherSettingsPresenter extends MbuiPresenter<OtherSettingsPresenter
                     getView().updateResourceElement(ElytronResource.CUSTOM_SECURITY_EVENT_LISTENER.resource,
                             asNamedNodes(result.step(i++).get(RESULT).asPropertyList()));
                     getView().updateResourceElement(ElytronResource.PERMISSION_SET.resource,
+                            asNamedNodes(result.step(i++).get(RESULT).asPropertyList()));
+                    getView().updateResourceElement(ElytronResource.CERTIFICATE_AUTHORITY.resource,
                             asNamedNodes(result.step(i++).get(RESULT).asPropertyList()));
                     getView().updateResourceElement(ElytronResource.CERTIFICATE_AUTHORITY_ACCOUNT.resource,
                             asNamedNodes(result.step(i++).get(RESULT).asPropertyList()));
@@ -555,6 +558,7 @@ public class OtherSettingsPresenter extends MbuiPresenter<OtherSettingsPresenter
             CUSTOM_SECURITY_EVENT_LISTENER_ADDRESS,
             AUTHENTICATION_CONFIGURATION_ADDRESS,
             AUTHENTICATION_CONTEXT_ADDRESS,
+            CERTIFICATE_AUTHORITY_ADDRESS,
             CERTIFICATE_AUTHORITY_ACCOUNT_ADDRESS,
             CLIENT_SSL_CONTEXT_ADDRESS,
             CREDENTIAL_STORE_ADDRESS,

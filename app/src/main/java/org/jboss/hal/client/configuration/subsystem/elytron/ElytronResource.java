@@ -78,6 +78,10 @@ enum ElytronResource {
             ModelDescriptionConstants.CACHING_REALM,
             AddressTemplates.CACHING_REALM_TEMPLATE, false),
 
+    CERTIFICATE_AUTHORITY(Ids.ELYTRON_CERTIFICATE_AUTHORITY,
+            ModelDescriptionConstants.CERTIFICATE_AUTHORITY,
+            AddressTemplates.CERTIFICATE_AUTHORITY_TEMPLATE, false),
+
     CERTIFICATE_AUTHORITY_ACCOUNT(Ids.ELYTRON_CERTIFICATE_AUTHORITY_ACCOUNT,
             ModelDescriptionConstants.CERTIFICATE_AUTHORITY_ACCOUNT,
             AddressTemplates.CERTIFICATE_AUTHORITY_ACCOUNT_TEMPLATE, false),

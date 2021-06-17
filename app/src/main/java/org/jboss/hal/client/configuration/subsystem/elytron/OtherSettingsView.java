@@ -47,6 +47,7 @@ import static org.jboss.hal.client.configuration.subsystem.elytron.ElytronResour
 import static org.jboss.hal.client.configuration.subsystem.elytron.ElytronResource.AGGREGATE_SECURITY_EVENT_LISTENER;
 import static org.jboss.hal.client.configuration.subsystem.elytron.ElytronResource.AUTHENTICATION_CONFIGURATION;
 import static org.jboss.hal.client.configuration.subsystem.elytron.ElytronResource.AUTHENTICATION_CONTEXT;
+import static org.jboss.hal.client.configuration.subsystem.elytron.ElytronResource.CERTIFICATE_AUTHORITY;
 import static org.jboss.hal.client.configuration.subsystem.elytron.ElytronResource.CERTIFICATE_AUTHORITY_ACCOUNT;
 import static org.jboss.hal.client.configuration.subsystem.elytron.ElytronResource.CLIENT_SSL_CONTEXT;
 import static org.jboss.hal.client.configuration.subsystem.elytron.ElytronResource.CREDENTIAL_STORE;
@@ -297,6 +298,15 @@ public class OtherSettingsView extends HalViewImpl implements OtherSettingsPrese
                 labelBuilder.label(SYSLOG_AUDIT_LOG.resource));
 
         // ====== Other settings
+
+        addResourceElement(CERTIFICATE_AUTHORITY,
+                CERTIFICATE_AUTHORITY.resourceElementBuilder(mbuiContext,
+                        () -> presenter.reload(CERTIFICATE_AUTHORITY.resource,
+                                nodes -> updateResourceElement(CERTIFICATE_AUTHORITY.resource, nodes)))
+                        .build(),
+                Ids.ELYTRON_OTHER_ITEM,
+                Ids.build(CERTIFICATE_AUTHORITY.baseId, Ids.ITEM),
+                labelBuilder.label(CERTIFICATE_AUTHORITY.resource));
 
         addResourceElement(CERTIFICATE_AUTHORITY_ACCOUNT,
                 CERTIFICATE_AUTHORITY_ACCOUNT.resourceElementBuilder(mbuiContext,

@@ -204,6 +204,7 @@ public interface Ids {
     String ELYTRON_AUTHENTICATION_CONFIGURATION = "elytron-authentication-configuration";
     String ELYTRON_AUTHENTICATION_CONTEXT = "elytron-authentication-context";
     String ELYTRON_CACHING_REALM = "elytron-caching-realm";
+    String ELYTRON_CERTIFICATE_AUTHORITY = "elytron-certificate-authority";
     String ELYTRON_CERTIFICATE_AUTHORITY_ACCOUNT = "elytron-certificate-authority-account";
     String ELYTRON_CHAINED_PRINCIPAL_TRANSFORMER = "elytron-chained-principal-transformer";
     String ELYTRON_CLIENT_SSL_CONTEXT = "elytron-client-ssl-context";
