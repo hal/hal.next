@@ -434,7 +434,9 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     SafeHtml startServerError(String name);
     SafeHtml startServerGroupError(String name);
     SafeHtml startServerGroupSuccess(String name);
+    SafeHtml startServerGroupInSuspendedModeSuccess(String name);
     SafeHtml startServerSuccess(String name);
+    SafeHtml startServerInSuspendedModeSuccess(String name);
     SafeHtml statisticsDisabled(String subsystem);
     SafeHtml statisticsEnabled(String name);
     SafeHtml stopDeliverySuccess(String name);

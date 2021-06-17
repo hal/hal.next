@@ -510,6 +510,7 @@ public interface Constants extends com.google.gwt.i18n.client.Constants {
     String specifyNames();
     String specifyParameters();
     String start();
+    String startInSuspendedMode();
     String startDelivery();
     String starting();
     String startJob();

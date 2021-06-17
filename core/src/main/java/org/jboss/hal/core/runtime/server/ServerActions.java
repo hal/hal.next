@@ -561,6 +561,21 @@ public class ServerActions implements Timeouts {
                 new ServerExceptionCallback(server, resources.messages().startServerError(server.getName())));
     }
 
+    public void startInSuspendedMode(Server server) {
+        prepare(server, Action.START);
+        Operation operation = new Operation.Builder(server.getServerConfigAddress(), START)
+                .param(START_MODE, SUSPEND)
+                .param(BLOCKING, false)
+                .build();
+        dispatcher.execute(operation,
+                result -> repeatOperationUntil(dispatcher, SERVER_START_TIMEOUT,
+                        readServerConfigStatus(server), checkServerConfigStatus(STARTED))
+                        .subscribe(new ServerTimeoutCallback(server, Action.START,
+                                resources.messages().startServerInSuspendedModeSuccess(server.getName()))),
+                new ServerFailedCallback(server, resources.messages().startServerError(server.getName())),
+                new ServerExceptionCallback(server, resources.messages().startServerError(server.getName())));
+    }
+
 
     // ------------------------------------------------------ server url methods
 

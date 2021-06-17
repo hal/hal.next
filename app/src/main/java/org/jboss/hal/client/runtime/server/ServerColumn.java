@@ -405,6 +405,11 @@ public class ServerColumn extends FinderColumn<Server> implements ServerActionHa
                                 .handler(serverActions::start)
                                 .constraint(Constraint.executable(serverConfigTemplate(item), START))
                                 .build());
+                        actions.add(new ItemAction.Builder<Server>()
+                                .title(resources.constants().startInSuspendedMode())
+                                .handler(serverActions::startInSuspendedMode)
+                                .constraint(Constraint.executable(serverConfigTemplate(item), SUSPEND))
+                                .build());
                     }
                 }
                 // add destroy and kill action regardless of state
