@@ -21,10 +21,12 @@ import java.util.List;
 
 import elemental2.dom.HTMLElement;
 import org.jboss.hal.ballroom.form.FormItem;
+import org.jboss.hal.ballroom.form.TextBoxItem;
 import org.jboss.hal.ballroom.wizard.WizardStep;
 import org.jboss.hal.core.datasource.DataSource;
 import org.jboss.hal.core.mbui.dialog.NameItem;
 import org.jboss.hal.core.mbui.form.ModelNodeForm;
+import org.jboss.hal.dmr.ModelNode;
 import org.jboss.hal.meta.Metadata;
 import org.jboss.hal.resources.Ids;
 import org.jboss.hal.resources.Resources;
@@ -43,10 +45,11 @@ class ReviewStep extends WizardStep<Context, State> {
         if (!xa) {
             attributes.add(CONNECTION_URL);
         }
-        attributes.addAll(Arrays.asList(DRIVER_NAME, "user-name", PASSWORD)); //NON-NLS
+        attributes.addAll(Arrays.asList(DRIVER_NAME, USER_NAME, PASSWORD)); //NON-NLS
 
         form = new ModelNodeForm.Builder<DataSource>(Ids.DATA_SOURCE_REVIEW_FORM, metadata)
                 .unboundFormItem(new NameItem(), 0)
+                .unboundFormItem(new TextBoxItem(CREDENTIAL_REFERENCE))
                 .include(attributes)
                 .unsorted()
                 .readOnly()
@@ -62,6 +65,8 @@ class ReviewStep extends WizardStep<Context, State> {
     protected void onShow(Context context) {
         FormItem<String> nameItem = form.getFormItem(NAME);
         nameItem.setValue(context.dataSource.getName());
+        ModelNode credRef = context.dataSource.get(CREDENTIAL_REFERENCE);
+        form.<String>getFormItem(CREDENTIAL_REFERENCE).setValue(credRef.isDefined() ? credRef.asString() : "");
         form.view(context.dataSource);
     }
 }

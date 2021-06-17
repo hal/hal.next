@@ -18,20 +18,29 @@ package org.jboss.hal.client.configuration.subsystem.datasource.wizard;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Strings;
 import elemental2.dom.HTMLElement;
 import org.jboss.hal.ballroom.wizard.WizardStep;
 import org.jboss.hal.core.datasource.DataSource;
+import org.jboss.hal.core.elytron.CredentialReference;
 import org.jboss.hal.core.mbui.form.ModelNodeForm;
+import org.jboss.hal.dmr.ModelNode;
 import org.jboss.hal.meta.Metadata;
 import org.jboss.hal.resources.Ids;
 import org.jboss.hal.resources.Names;
 import org.jboss.hal.resources.Resources;
 
 import static java.util.Arrays.asList;
+import static org.jboss.hal.dmr.ModelDescriptionConstants.ALIAS;
+import static org.jboss.hal.dmr.ModelDescriptionConstants.CLEAR_TEXT;
 import static org.jboss.hal.dmr.ModelDescriptionConstants.CONNECTION_URL;
+import static org.jboss.hal.dmr.ModelDescriptionConstants.CREDENTIAL_REFERENCE;
 import static org.jboss.hal.dmr.ModelDescriptionConstants.PASSWORD;
 import static org.jboss.hal.dmr.ModelDescriptionConstants.SECURITY_DOMAIN;
+import static org.jboss.hal.dmr.ModelDescriptionConstants.STORE;
+import static org.jboss.hal.dmr.ModelDescriptionConstants.TYPE;
 import static org.jboss.hal.dmr.ModelDescriptionConstants.USER_NAME;
+import static org.jboss.hal.dmr.ModelNodeHelper.move;
 
 class ConnectionStep extends WizardStep<Context, State> {
 
@@ -40,19 +49,48 @@ class ConnectionStep extends WizardStep<Context, State> {
     ConnectionStep(Metadata metadata, Resources resources, boolean xa) {
         super(Names.CONNECTION);
 
+        List<String> credRefAttrs = asList(STORE, ALIAS, CLEAR_TEXT, TYPE);
+        List<String> otherAttrs = asList(USER_NAME, PASSWORD, SECURITY_DOMAIN);
+
         List<String> attributes = new ArrayList<>();
         if (!xa) {
             attributes.add(CONNECTION_URL);
         }
-        attributes.addAll(asList(USER_NAME, PASSWORD, SECURITY_DOMAIN));
-        form = new ModelNodeForm.Builder<DataSource>(Ids.DATA_SOURCE_CONNECTION_FORM, metadata)
+
+        attributes.addAll(otherAttrs);
+        attributes.addAll(credRefAttrs);
+
+        // split credential reference into individual attributes
+        Metadata connMetadata = metadata.forComplexAttribute(CREDENTIAL_REFERENCE, true);
+        for (String attr : otherAttrs) {
+            metadata.copyAttribute(attr, connMetadata);
+        }
+
+        form = new ModelNodeForm.Builder<DataSource>(Ids.DATA_SOURCE_CONNECTION_FORM, connMetadata)
                 .include(attributes)
                 .unsorted()
                 .onSave((form, changedValues) -> {
                     changedValues.forEach((k, v) -> wizard().getContext().recordChange(k, v));
+                    // re-create credential reference
+                    for (String credRefAttr : credRefAttrs) {
+                        move(form.getModel(), credRefAttr, CREDENTIAL_REFERENCE + "/" + credRefAttr);
+                    }
                     wizard().getContext().dataSource = form.getModel();
                 })
                 .build();
+
+        form.addFormValidation(new CredentialReference.AlternativeValidation(PASSWORD, () -> {
+            // supply credential reference but do not alter model
+            ModelNode credRef = new ModelNode();
+            for (String credRefAttr : credRefAttrs) {
+                String value = form.<String>getFormItem(credRefAttr).getValue();
+                if (!Strings.isNullOrEmpty(value)) {
+                    credRef.get(credRefAttr).set(value);
+                }
+            }
+            return credRef;
+        }, resources));
+
         registerAttachable(form);
     }
 
