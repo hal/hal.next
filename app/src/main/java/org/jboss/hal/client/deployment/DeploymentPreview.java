@@ -100,6 +100,23 @@ abstract class DeploymentPreview<T extends ModelNode> extends PreviewContent<T> 
         attributes.append(model -> new PreviewAttribute(labelBuilder.label(STATUS), deployment.getStatus().name()));
     }
 
+    void hash(PreviewAttributes<T> attributes, Deployment deployment) {
+        ModelNode content = deployment.get(CONTENT);
+        StringBuilder hashString = new StringBuilder();
+
+        // for compatibility reasons "content" is a list but there is only one element in it
+        byte[] hash = content.get(0).get(HASH).asBytes();
+        for (byte b : hash) {
+            String hex = Integer.toHexString(b);
+            if (hex.length() == 1) {
+                hashString.append('0');
+            }
+            hashString.append(hex);
+        }
+
+        attributes.append(model -> new PreviewAttribute(labelBuilder.label(HASH), hashString.toString()));
+    }
+
     void subDeployments(Deployment deployment) {
         HTMLElement ul;
         previewBuilder()

@@ -95,6 +95,9 @@ class ServerGroupDeploymentPreview extends DeploymentPreview<ServerGroupDeployme
             return new PreviewAttribute(resources.constants().providedBy(), model.getName(),
                     places.historyToken(placeRequest));
         });
+        if (deployment != null) {
+            hash(attributes, deployment);
+        }
         eme(attributes);
         if (deployment != null) {
             status(attributes, deployment);

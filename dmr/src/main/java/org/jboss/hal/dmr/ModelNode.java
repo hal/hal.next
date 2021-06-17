@@ -1496,7 +1496,7 @@ public class ModelNode implements Cloneable {
                 case BYTES:
                     b = new byte[in.readInt()];
                     in.readFully(b);
-                    new BytesModelValue(b);
+                    value = new BytesModelValue(b);
                     return;
                 case DOUBLE:
                     value = new DoubleModelValue(in.readDouble());
