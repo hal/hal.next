@@ -365,6 +365,7 @@ public interface ModelDescriptionConstants {
     String GET_ROLES = "get-roles";
     String GET_SESSION_CREATION_TIME = "get-session-creation-time";
     String GET_SESSION_LAST_ACCESSED_TIME = "get-session-last-accessed-time";
+    String GLOBAL_DIRECTORY = "global-directory";
     String GLOBAL_MODULES = "global-modules";
     String GROUP = "group";
     String GROUPING_HANDLER = "grouping-handler";

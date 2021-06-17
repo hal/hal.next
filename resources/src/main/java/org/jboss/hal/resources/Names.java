@@ -134,6 +134,7 @@ public interface Names {
 
     String GENERIC_ACCEPTOR = "Generic Acceptor";
     String GENERIC_CONNECTOR = "Generic Connector";
+    String GLOBAL_DIRECTORY = "Global Directory";
     String GLOBAL_MODULES = "Global Modules";
     String GROUPING_HANDLER = "Grouping Handler";
 
