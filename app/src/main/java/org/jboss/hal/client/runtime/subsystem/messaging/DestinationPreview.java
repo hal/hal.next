@@ -108,6 +108,7 @@ class DestinationPreview extends PreviewContent<Destination> {
         } else if (destination.type == Destination.Type.JMS_TOPIC) {
             attributes.append(TOPIC_ADDRESS)
                     .append(jndiNamesFn)
+                    .append(PAUSED)
                     .append(TEMPORARY);
             messages.append(MESSAGE_COUNT)
                     .append(DURABLE_MESSAGE_COUNT)

@@ -222,21 +222,6 @@ public class DestinationColumn extends FinderColumn<Destination> {
                     }
                     builder.with(Ids.MESSAGING_SERVER, messageServer()).with(NAME, item.getName());
                     actions.add(itemActionFactory.view(builder.build()));
-
-                    if (item.isPaused()) {
-                        actions.add(new ItemAction.Builder<Destination>()
-                                .title(resources.constants().resume())
-                                .constraint(Constraint.executable(item.template(), RESUME))
-                                .handler(DestinationColumn.this::resume)
-                                .build());
-                    } else {
-                        actions.add(new ItemAction.Builder<Destination>()
-                                .title(resources.constants().pause())
-                                .constraint(Constraint.executable(item.template(), PAUSE))
-                                .handler(DestinationColumn.this::pause)
-                                .build());
-                    }
-
                 } else if (item.type == Type.JMS_TOPIC) {
                     actions.add(new ItemAction.Builder<Destination>()
                             .title(Strings.abbreviateMiddle(resources.constants().dropSubscriptions(), 16))
@@ -244,6 +229,21 @@ public class DestinationColumn extends FinderColumn<Destination> {
                             .handler(DestinationColumn.this::dropSubscriptions)
                             .build());
                 }
+
+                if (item.isPaused()) {
+                    actions.add(new ItemAction.Builder<Destination>()
+                            .title(resources.constants().resume())
+                            .constraint(Constraint.executable(item.template(), RESUME))
+                            .handler(DestinationColumn.this::resume)
+                            .build());
+                } else {
+                    actions.add(new ItemAction.Builder<Destination>()
+                            .title(resources.constants().pause())
+                            .constraint(Constraint.executable(item.template(), PAUSE))
+                            .handler(DestinationColumn.this::pause)
+                            .build());
+                }
+
                 return actions;
             }
         });
