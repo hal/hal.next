@@ -34,6 +34,7 @@ public final class Format {
     private static final NumberFormat SIZE_FORMAT = NumberFormat.getFormat("#,##0.#");
     private static final Constants CONSTANTS = GWT.create(Constants.class);
     private static final String SPACE = " ";
+    private static final String COMMA = ", ";
 
 
     public static String timestamp(Date date) {
@@ -73,50 +74,51 @@ public final class Format {
             return duration + " ms"; //NON-NLS
         }
 
-        duration = Math.round(duration / 1000.0);
+        duration /= 1000;
 
         int sec = (int) duration % 60;
-        duration = Math.round(duration / 60.0);
+        duration /= 60;
 
         int min = (int) duration % 60;
-        duration = Math.round(duration / 60.0);
+        duration /= 60;
 
         int hour = (int) duration % 24;
-        duration = Math.round(duration / 24.0);
+        duration /= 24;
 
         int day = (int) duration;
 
-        String str = "";
+        StringBuilder sb = new StringBuilder();
         if (day > 0) {
-            if (day > 1) {
-                str += day + SPACE + CONSTANTS.days() + ", ";
-            } else {
-                str += day + SPACE + CONSTANTS.day() + ", ";
-            }
+            sb.append(day)
+              .append(SPACE)
+              .append(day > 1 ? CONSTANTS.days() : CONSTANTS.day());
         }
         // prints 0 hour in case days exists. Otherwise prints 2 days, 34 min, sounds weird.
         if (hour > 0 || (day > 0)) {
-            if (hour > 1) {
-                str += hour + SPACE + CONSTANTS.hours() + ", ";
-            } else {
-                str += hour + SPACE + CONSTANTS.hour() + ", ";
+            if (sb.length() > 0) {
+                sb.append(COMMA);
             }
+            sb.append(hour)
+              .append(SPACE)
+              .append(hour > 1 ? CONSTANTS.hours() : CONSTANTS.hour());
         }
         if (min > 0) {
-            if (min > 1) {
-                str += min + SPACE + CONSTANTS.minutes() + ", ";
-            } else {
-                str += min + SPACE + CONSTANTS.minute() + ", ";
+            if (sb.length() > 0) {
+                sb.append(COMMA);
             }
+            sb.append(min)
+              .append(SPACE)
+              .append(min > 1 ? CONSTANTS.minutes() : CONSTANTS.minute());
         }
         if (sec > 0) {
-            if (sec > 1) {
-                str += sec + SPACE + CONSTANTS.seconds();
-            } else {
-                str += sec + SPACE + CONSTANTS.second();
+            if (sb.length() > 0) {
+                sb.append(COMMA);
             }
+            sb.append(sec)
+              .append(SPACE)
+              .append(sec > 1 ? CONSTANTS.seconds() : CONSTANTS.second());
         }
-        return str;
+        return sb.toString();
     }
 
     /**
