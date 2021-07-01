@@ -35,9 +35,11 @@ import org.jboss.hal.meta.Metadata;
 import org.jboss.hal.resources.Ids;
 import org.jboss.hal.resources.Names;
 
+import static java.util.stream.Collectors.joining;
 import static org.jboss.gwt.elemento.core.Elements.h;
 import static org.jboss.gwt.elemento.core.Elements.p;
 import static org.jboss.gwt.elemento.core.Elements.section;
+import static org.jboss.hal.client.configuration.subsystem.elytron.AddressTemplates.PERMISSION_SET_TEMPLATE;
 import static org.jboss.hal.client.configuration.subsystem.elytron.AddressTemplates.SIMPLE_PERMISSION_MAPPER_TEMPLATE;
 import static org.jboss.hal.dmr.ModelDescriptionConstants.*;
 import static org.jboss.hal.dmr.ModelNodeHelper.failSafeList;
@@ -98,13 +100,16 @@ public class SimplePermissionMapperElement
                 .column(PRINCIPALS, (cell, type, row, meta) -> extractValue(row, PRINCIPALS))
                 .column(ROLES, (cell, type, row, meta) -> extractValue(row, ROLES))
                 .column(PERMISSIONS, (cell, type, row, meta) -> extractPermissionsString(row))
+                .column(PERMISSION_SETS, (cell, type, row, meta) -> extractPermissionSets(row))
                 .column(new InlineAction<>(Names.PERMISSIONS, this::showPermissions))
                 .build();
         pmForm = new ModelNodeForm.Builder<>(Ids.ELYTRON_PERMISSION_MAPPINGS_FORM, pmMetadata)
                 .onSave(((form, changedValues) -> presenter.savePermissionMappings(selectedSimplePermissionMapper,
                         form.getModel().get(HAL_INDEX).asInt(), changedValues)))
+                .customFormItem(PERMISSION_SETS, attributeDescription -> new PermissionSetsItem())
                 .unsorted()
                 .build();
+
         HTMLElement permissionMappingsSection = section()
                 .add(h(1).textContent(Names.PERMISSION_MAPPINGS))
                 .add(p().textContent(pmMetadata.getDescription().getDescription()))
@@ -181,6 +186,17 @@ public class SimplePermissionMapperElement
         return value;
     }
 
+    private String extractPermissionSets(ModelNode row) {
+        String value = "";
+        if (row.hasDefined(PERMISSION_SETS)) {
+            value = row.get(PERMISSION_SETS).asList().stream()
+                    .map(ps -> ps.get(PERMISSION_SET).asString())
+                    .collect(joining(", "));
+            value = abbreviateMiddle(value, 120);
+        }
+        return value;
+    }
+
     private void showPermissionMappings(NamedNode spmNode) {
         selectedSimplePermissionMapper = spmNode.getName();
         List<ModelNode> permissionMappingsNodes = failSafeList(spmNode, ModelDescriptionConstants.PERMISSION_MAPPINGS);
@@ -211,6 +227,7 @@ public class SimplePermissionMapperElement
         spmTable.bindForm(spmForm);
 
         pmTable.attach();
+        pmForm.getFormItem(PERMISSION_SETS).registerSuggestHandler(presenter.getAutocomplete(PERMISSION_SET_TEMPLATE));
         pmForm.attach();
         pmTable.bindForm(pmForm);
 
